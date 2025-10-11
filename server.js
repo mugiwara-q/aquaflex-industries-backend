@@ -32,10 +32,11 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/", (req, res) => {
     res.json({
         status: "ok",
-        timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development'
-    });
-});
+        times: new Date().toISOString(),
+        timestamp: new Date().toLocaleString(),
+        /* environment: process.env.NODE_ENV || 'development' */
+    })
+})
 
 // Telegram Bot setup
 const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -52,7 +53,7 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 // Routes
-app.post('/api/3d-quote', upload.array('files'), async (req, res) => {
+app.post('/3d-quote', upload.array('files'), async (req, res) => {
     try {
         const { firstName, lastName, email } = req.body;
         const files = req.files;
@@ -102,7 +103,7 @@ app.post('/api/3d-quote', upload.array('files'), async (req, res) => {
     }
 });
 
-app.post('/api/quote', upload.single('file'), async (req, res) => {
+app.post('/quote', upload.single('file'), async (req, res) => {
     try {
         const { name, company, email, phone, message } = req.body;
         const file = req.file;
