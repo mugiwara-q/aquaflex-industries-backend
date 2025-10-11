@@ -1,15 +1,15 @@
-import express, { Request, Response, NextFunction } from 'express';
-import multer from 'multer';
-import TelegramBot from 'node-telegram-bot-api';
-import dotenv from 'dotenv';
-import cors from 'cors';
-import path from 'path';
-import fs from 'fs';
+const express = require('express');
+const multer = require('multer');
+const TelegramBot = require('node-telegram-bot-api');
+const dotenv = require('dotenv');
+const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
 
 // Load environment variables
 dotenv.config();
 
-// Type checking for required environment variables
+// Check required environment variables
 if (!process.env.TELEGRAM_BOT_TOKEN || !process.env.TELEGRAM_CHAT_ID) {
     console.error('Required environment variables are missing');
     process.exit(1);
@@ -24,12 +24,12 @@ app.use(cors({
     "methods": "GET,POST,",
     "preflightContinue": false,
     "optionsSuccessStatus": 204
-}))
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Health check route
-app.get("/", (req: Request, res: Response) => {
+app.get("/", (req, res) => {
     res.json({
         status: "ok",
         timestamp: new Date().toISOString(),
@@ -40,12 +40,6 @@ app.get("/", (req: Request, res: Response) => {
 // Telegram Bot setup
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const chatId = process.env.TELEGRAM_CHAT_ID;
-
-if (!token || !chatId) {
-    console.error('Something is missing. Check your .env.');
-    process.exit(1);
-}
-
 const bot = new TelegramBot(token);
 
 // Multer setup for file uploads
@@ -61,7 +55,7 @@ if (!fs.existsSync(uploadsDir)) {
 app.post('/api/3d-quote', upload.array('files'), async (req, res) => {
     try {
         const { firstName, lastName, email } = req.body;
-        const files = req.files as Express.Multer.File[];
+        const files = req.files;
         const jobsData = JSON.parse(req.body.jobs);
 
         let caption = `
@@ -72,7 +66,7 @@ app.post('/api/3d-quote', upload.array('files'), async (req, res) => {
       📧 Email: ${email}
 
       *Fichiers : [${jobsData.length}]*   
-      ${jobsData.map((job: any, index: number) => `
+      ${jobsData.map((job, index) => `
         ${index + 1}. ${job.filename}
         - Matériau: ${job.material}
         - Quantité: ${job.quantity}
@@ -84,7 +78,7 @@ app.post('/api/3d-quote', upload.array('files'), async (req, res) => {
         - Prix estimé: ${job.price.toFixed(2)}€
       `).join('\n')}
 
-      *Prix total indicatif: ${jobsData.reduce((acc: number, job: any) => acc + job.price, 0).toFixed(2)}€*
+      *Prix total indicatif: ${jobsData.reduce((acc, job) => acc + job.price, 0).toFixed(2)}€*
 
       ${req.body.notes ? `*Notes:*\n${req.body.notes}` : ''}
     `;
@@ -141,10 +135,10 @@ app.post('/api/quote', upload.single('file'), async (req, res) => {
         console.error('Error sending quote request to Telegram:', error);
         res.status(500).json({ success: false, message: 'Failed to send quote request.' });
     }
-})
+});
 
 // Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({
         success: false,
@@ -153,7 +147,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 });
 
 // 404 handler - must be last route
-app.use((req: express.Request, res: express.Response) => {
+app.use((req, res) => {
     res.status(404).json({
         success: false,
         message: 'Route non trouvée'
@@ -163,4 +157,4 @@ app.use((req: express.Request, res: express.Response) => {
 app.listen(port, () => {
     console.log(`Server running on port ${port} !`);
     console.log(`API URL: http://localhost:${port}`);
-})
+});
