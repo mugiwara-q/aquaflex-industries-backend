@@ -45,13 +45,13 @@ app.post('/api/3d-quote', upload.array('files'), async (req, res) => {
     const jobsData = JSON.parse(req.body.jobs);
 
     let caption = `
-      *Nouvelle demande de devis impression 3D*
+      *DEMANDE DEVIS IMPRESSION 3D*
 
       *Contact*
       👤 Nom: ${firstName} ${lastName}
       📧 Email: ${email}
 
-      *Fichiers*
+      *Fichiers : [${jobsData.length}]*   
       ${jobsData.map((job: any, index: number) => `
         ${index + 1}. ${job.filename}
         - Matériau: ${job.material}
@@ -60,7 +60,8 @@ app.post('/api/3d-quote', upload.array('files'), async (req, res) => {
         - Remplissage: ${job.infill}
         - Couleur: ${job.color}
         - Volume estimé: ${job.volume.toFixed(2)} cm³
-        ${job.urgency === 'urgent' ? '⚠️ URGENT' : ''}
+        - Urgence : ${job.urgency === 'urgent' ? '⚠️ URGENT' : 'NON URGENT'}
+        - Prix estimé: ${job.price.toFixed(2)}€
       `).join('\n')}
 
       *Prix total indicatif: ${jobsData.reduce((acc: number, job: any) => acc + job.price, 0).toFixed(2)}€*
@@ -93,7 +94,7 @@ app.post('/api/quote', upload.single('file'), async (req, res) => {
     const file = req.file;
 
     let caption = `
-      *Nouvelle demande de devis*
+      *DEMANDE DEVIS PROJET*
 
       *Nom:* ${name}
       *Entreprise:* ${company || 'N/A'}
