@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import TelegramBot from 'node-telegram-bot-api';
 import dotenv from 'dotenv';
@@ -6,7 +6,14 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 
+// Load environment variables
 dotenv.config();
+
+// Type checking for required environment variables
+if (!process.env.TELEGRAM_BOT_TOKEN || !process.env.TELEGRAM_CHAT_ID) {
+    console.error('Required environment variables are missing');
+    process.exit(1);
+}
 
 const app = express();
 const port = process.env.BACKEND_PORT || 3000;
@@ -21,8 +28,14 @@ app.use(cors({
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-/*************** INIT ROUTES ***************/
-app.get("/", (req, res) => res.send("Backend running ! " + new Date().toLocaleString()))
+// Health check route
+app.get("/", (req: Request, res: Response) => {
+    res.json({
+        status: "ok",
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
 
 // Telegram Bot setup
 const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -130,8 +143,24 @@ app.post('/api/quote', upload.single('file'), async (req, res) => {
     }
 })
 
-app.get("*", (req, res) => res.status(501).send("Not Implemented")) // function not implemented
+// Error handling middleware
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error(err.stack);
+    res.status(500).json({
+        success: false,
+        message: 'Une erreur est survenue sur le serveur.'
+    });
+});
+
+// 404 handler - must be last route
+app.use((req: express.Request, res: express.Response) => {
+    res.status(404).json({
+        success: false,
+        message: 'Route non trouvée'
+    });
+});
 
 app.listen(port, () => {
-    console.log(`Server running on port ${process.env.BACKEND_PORT} !`)
+    console.log(`Server running on port ${port} !`);
+    console.log(`API URL: http://localhost:${port}`);
 })
