@@ -2,7 +2,7 @@
 # BACKEND
 #########################################################
 
-FROM node:22.1.0-alpine AS build
+FROM node:22-slim AS build
 
 #RUN groupadd -r nodejs -g 433 && \
 #    useradd -u 431 -r -g nodejs -s /sbin/nologin -c "Docker image user" nodejs
