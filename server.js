@@ -129,7 +129,7 @@ app.use(handleMulterError);
 
 app.post('/3d-quote', upload.array('files'), async (req, res) => {
     try {
-        const { firstName, lastName, email } = req.body;
+        const { firstName, lastName, email, phone } = req.body;
         const files = req.files;
         const jobsData = JSON.parse(req.body.jobs);
 
@@ -138,11 +138,16 @@ app.post('/3d-quote', upload.array('files'), async (req, res) => {
             return text.replace(/[_*\[\]()~`>#+=|{}.!-]/g, '\\$&');
         };
 
-        let caption = `*📋 DEMANDE DEVIS IMPRESSION 3D*\n\n`;
-        caption += `*👤 Contact*\n`;
+        let caption = `*📋 DEMANDE DEVIS IMPRESSION 3D*\n`;
+        caption += `*Date:* ${new Date().toLocaleString()}\n`;
+        caption += `*💰 ${jobsData.reduce((acc, job) => acc + job.price, 0).toFixed(2)}€*\n\n`;
+        caption += `*=====👤 Contact =====*\n`;
         caption += `*Nom:* ${escapeMarkdown(`${firstName} ${lastName}`)}\n`;
-        caption += `*Email:* ${escapeMarkdown(email)}\n\n`;
-        caption += `*📁 Fichiers [${jobsData.length}]*\n\n`;
+        caption += `*Email:* ${escapeMarkdown(email)}\n`;
+        if (phone) {
+          caption += `*Téléphone:* ${escapeMarkdown(phone)}\n`;
+        }
+        caption += `\n*===== 📁 Fichiers [${jobsData.length}] =====*\n\n`;
 
         jobsData.forEach((job, index) => {
             caption += `*[${index + 1}] ${escapeMarkdown(job.filename)}*\n`;
