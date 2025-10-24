@@ -111,14 +111,14 @@ const upload = multer({
         // Vérifier les types de fichiers autorisés
         const allowedTypes = ['model/stl', 'application/sla', 'model/obj', 
                             'application/octet-stream', // Pour les fichiers STL binaires
-                            'text/plain']; // Pour les fichiers STL ASCII
+                            'text/plain'] // Pour les fichiers STL ASCII
         
         if (allowedTypes.includes(file.mimetype) || 
             file.originalname.toLowerCase().endsWith('.stl') ||
             file.originalname.toLowerCase().endsWith('.obj')) {
-            cb(null, true);
+            cb(null, true)
         } else {
-            cb(new Error('Type de fichier non supporté. Seuls les fichiers STL et OBJ sont acceptés.'));
+            cb(new Error('Type de fichier non supporté. Seuls les fichiers STL et OBJ sont acceptés.'))
         }
     }
 });
@@ -129,30 +129,30 @@ app.use(handleMulterError);
 
 app.post('/3d-quote', upload.array('files'), async (req, res) => {
     try {
-        const { firstName, lastName, email, phone } = req.body;
-        const files = req.files;
-        const jobsData = JSON.parse(req.body.jobs);
+        const { firstName, lastName, email, phone } = req.body
+        const files = req.files
+        const jobsData = JSON.parse(req.body.jobs)
 
         // Function to escape special characters for Markdown
         const escapeMarkdown = (text) => {
-            return text.replace(/[_*\[\]()~`>#+=|{}.!-]/g, '\\$&');
+            return text.replace(/[_*\[\]()~`>#+=|{}.!-]/g, '\\$&')
         };
 
-        let caption = `*📋 DEMANDE DEVIS IMPRESSION 3D*\n`;
-        caption += `*Date:* ${new Date().toLocaleString()}\n`;
-        caption += `*💰 ${jobsData.reduce((acc, job) => acc + job.price, 0).toFixed(2)}€*\n\n`;
-        caption += `*=====👤 Contact =====*\n`;
-        caption += `*Nom:* ${escapeMarkdown(`${firstName} ${lastName}`)}\n`;
-        caption += `*Email:* ${escapeMarkdown(email)}\n`;
+        let caption = `*📋 DEMANDE DEVIS IMPRESSION 3D*\n`
+        caption += `*Date:* ${new Date().toLocaleString()}\n`
+        caption += `*💰 ${jobsData.reduce((acc, job) => acc + job.price, 0).toFixed(2)}€*\n\n`
+        caption += `*=====👤 Contact =====*\n`
+        caption += `*Nom:* ${escapeMarkdown(`${firstName} ${lastName}`)}\n`
+        caption += `*Email:* ${escapeMarkdown(email)}\n`
         if (phone) {
-          caption += `*Téléphone:* ${escapeMarkdown(phone)}\n`;
+          caption += `*Téléphone:* ${escapeMarkdown(phone)}\n`
         }
-        caption += `\n*===== 📁 Fichiers [${jobsData.length}] =====*\n\n`;
+        caption += `\n*===== 📁 Fichiers [${jobsData.length}] =====*\n\n`
 
         jobsData.forEach((job, index) => {
-            caption += `*[${index + 1}] ${escapeMarkdown(job.filename)}*\n`;
-            caption += `▫️ Matériau: ${escapeMarkdown(job.material)}\n`;
-            caption += `▫️ Quantité: ${job.quantity}\n`;
+            caption += `*[${index + 1}] ${escapeMarkdown(job.filename)}*\n`
+            caption += `▫️ Matériau: ${escapeMarkdown(job.material)}\n`
+            caption += `▫️ Quantité: ${job.quantity}\n`
             caption += `▫️ Hauteur de couche: ${escapeMarkdown(job.layerHeight)}\n`;
             caption += `▫️ Remplissage: ${escapeMarkdown(job.infill)}\n`;
             caption += `▫️ Couleur: ${escapeMarkdown(job.color)}\n`;
@@ -161,13 +161,13 @@ app.post('/3d-quote', upload.array('files'), async (req, res) => {
             caption += `▫️ Prix estimé: ${job.price.toFixed(2)}€\n\n`;
         });
 
-        caption += `*💰 Prix total indicatif: ${jobsData.reduce((acc, job) => acc + job.price, 0).toFixed(2)}€*\n\n`;
+        caption += `*💰 Prix total indicatif: ${jobsData.reduce((acc, job) => acc + job.price, 0).toFixed(2)}€*\n\n`
 
         if (req.body.notes) {
-            caption += `*📝 Notes:*\n${escapeMarkdown(req.body.notes)}`;
+            caption += `*📝 Notes:*\n${escapeMarkdown(req.body.notes)}`
         }
 
-        await retry(() => bot.sendMessage(chatId, caption, { parse_mode: 'Markdown' }));
+        await retry(() => bot.sendMessage(chatId, caption, { parse_mode: 'Markdown' }))
 
         // Send each 3D file
         for (const file of files) {
@@ -179,16 +179,16 @@ app.post('/3d-quote', upload.array('files'), async (req, res) => {
                     });
                 });
             } catch (error) {
-                console.error(`Failed to send file ${file.originalname}:`, error);
-                throw error;
+                console.error(`Failed to send file ${file.originalname}:`, error)
+                throw error
             } finally {
                 // Clean up the uploaded file even if sending fails
                 try {
                     if (fs.existsSync(file.path)) {
-                        fs.unlinkSync(file.path);
+                        fs.unlinkSync(file.path)
                     }
                 } catch (unlinkError) {
-                    console.error(`Failed to clean up file ${file.path}:`, unlinkError);
+                    console.error(`Failed to clean up file ${file.path}:`, unlinkError)
                 }
             }
         }
